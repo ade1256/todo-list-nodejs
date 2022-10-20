@@ -27,6 +27,24 @@ const createUser = async (req, res) => {
     });
 }
 
+const loginUser = async (req, res) => {
+  const user = await User.findOne({ username: req.body.username })
+  if (user) {
+    const result = await bcrypt.compare(req.body.password, user.password)
+    if (result) {
+      res.send(user)
+    } else {
+      res.status(401).send({
+        message: "Invalid Password"
+      })
+    }
+  } else {
+    res.status(404).send({
+      message: "User not found"
+    })
+  }
+}
+
 module.exports = {
-  createUser
+  createUser, loginUser
 }
