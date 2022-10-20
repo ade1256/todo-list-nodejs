@@ -9,6 +9,14 @@ const todoSchema = mongoose.Schema({
   timestamps: true
 })
 
+todoSchema.virtual('user', {
+  ref: 'User',
+  localField: 'userId',
+  foreignField: '_id',
+  justOne: true
+})
+todoSchema.set('toObject', { virtuals: true });
+todoSchema.set('toJSON', { virtuals: true });
 const Todo = mongoose.model('Todo', todoSchema);
 
 module.exports = Todo;

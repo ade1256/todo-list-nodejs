@@ -24,12 +24,41 @@ const createTodo = (req, res) => {
 }
 
 const getAll = (req, res) => {
-  Todo.find()
+  Todo.find().populate({
+    path: 'user',
+    match: { _id: req.userId },
+    select: 'name email username'
+  })
     .then(todos => {
       res.send(todos);
     }).catch(err => {
       res.status(500).send({
         message: err.message || "Some error occurred while retrieving todos."
+      });
+    });
+}
+
+const getById = (req, res) => {
+  Todo.findById(req.params.todoId).populate({
+    path: 'user',
+    match: { _id: req.userId },
+    select: 'name email username'
+  })
+    .then(async todo => {
+      if (!todo) {
+        return res.status(404).send({
+          message: "Todo not found with id " + req.params.todoId
+        });
+      }
+      res.send(todo);
+    }).catch(err => {
+      if (err.kind === 'ObjectId') {
+        return res.status(404).send({
+          message: "Todo not found with id " + req.params.todoId
+        });
+      }
+      return res.status(500).send({
+        message: "Error retrieving todo with id " + req.params.todoId
       });
     });
 }
@@ -80,5 +109,5 @@ const deleteById = (req, res) => {
 }
 
 module.exports = {
-  createTodo, getAll, updateById, deleteById
+  createTodo, getAll, updateById, deleteById, getById
 }

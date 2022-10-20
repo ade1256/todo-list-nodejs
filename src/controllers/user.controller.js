@@ -1,6 +1,7 @@
 const User = require('../models/user.model.js');
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const jwt = require('jsonwebtoken');
 
 const createUser = async (req, res) => {
   const user = new User({
@@ -32,7 +33,15 @@ const loginUser = async (req, res) => {
   if (user) {
     const result = await bcrypt.compare(req.body.password, user.password)
     if (result) {
-      res.send(user)
+      let newUser = user._doc
+      delete newUser.password
+      jwt.sign({...newUser}, process.env.SECRET_KEY, { algorithm: 'HS256', expiresIn: "6h" }, (error, token) => {
+        if(error) {
+          return res.status(500).json({message: error.message});
+        }
+        res.send({...newUser, token})
+      });
+      
     } else {
       res.status(401).send({
         message: "Invalid Password"
